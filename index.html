@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cyber Team Help Ai | SHADOW JOKER</title>
     <style>
         body {
@@ -14,21 +14,15 @@
             height: 100vh; overflow: hidden;
         }
 
-        /* Running Background Animation */
+        /* Background: shadow.jpg from GitHub */
         body::before {
             content: "";
             position: absolute;
-            width: 200%; height: 200%;
-            background: linear-gradient(-45deg, #000, #001f3f, #08001a, #004080);
-            background-size: 400% 400%;
-            animation: moveBG 12s ease infinite;
+            width: 100%; height: 100%;
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                        url('shadow.jpg') no-repeat center center;
+            background-size: cover;
             z-index: -1;
-        }
-
-        @keyframes moveBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
         }
 
         .container {
@@ -45,6 +39,14 @@
         header {
             text-align: center; padding: 20px;
             border-bottom: 1px solid rgba(0, 255, 204, 0.3);
+        }
+
+        /* Logo: logo.png from GitHub */
+        .logo {
+            width: 60px; height: 60px;
+            border-radius: 50%; border: 2px solid #00ffcc;
+            box-shadow: 0 0 10px #00ffcc;
+            margin-bottom: 5px; object-fit: cover;
         }
 
         .glow-text {
@@ -85,6 +87,13 @@
             box-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
         }
 
+        .copy-btn {
+            background: transparent; border: 1px solid #00ffcc;
+            color: #00ffcc; font-size: 10px; padding: 3px 8px;
+            margin-top: 5px; cursor: pointer; border-radius: 4px;
+            width: fit-content;
+        }
+
         .input-area {
             display: flex; padding: 15px;
             background: rgba(0, 0, 0, 0.5);
@@ -108,7 +117,6 @@
 
         button:hover { background: #fff; box-shadow: 0 0 20px #fff; }
 
-        /* Custom Scrollbar */
         .chat-box::-webkit-scrollbar { width: 5px; }
         .chat-box::-webkit-scrollbar-thumb { background: #00ffcc; border-radius: 10px; }
     </style>
@@ -117,6 +125,7 @@
 
     <div class="container">
         <header>
+            <img src="logo.png" alt="Logo" class="logo" onerror="this.style.display='none'">
             <h1 class="glow-text flicker">Cyber Team Help Ai</h1>
             <span class="credit">Create By SHADOW JOKER</span>
         </header>
@@ -142,11 +151,8 @@
             appendMessage('user', message);
             userInput.value = '';
 
-            const loadingMsg = document.createElement('div');
-            loadingMsg.className = 'msg ai-msg';
-            loadingMsg.innerHTML = "<i>SHADOW JOKER AI উত্তর খুঁজছে...</i>";
-            chatBox.appendChild(loadingMsg);
-            chatBox.scrollTop = chatBox.scrollHeight;
+            const loadingId = "load-" + Date.now();
+            appendMessage('ai', 'SHADOW JOKER AI উত্তর খুঁজছে...', loadingId);
 
             try {
                 const response = await fetch('/api/chat', {
@@ -156,22 +162,52 @@
                 });
 
                 const data = await response.json();
-                chatBox.removeChild(loadingMsg);
+                document.getElementById(loadingId).parentElement.remove();
 
-                const aiText = data.reply + "\n\n— *Create By SHADOW JOKER*";
-                appendMessage('ai', aiText);
+                typeWriter(data.reply || "দুঃখিত, কোনো উত্তর পাওয়া যায়নি।");
 
             } catch (error) {
-                loadingMsg.innerText = "Error: সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।";
+                document.getElementById(loadingId).innerText = "Error: সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।";
             }
         }
 
-        function appendMessage(sender, text) {
+        function appendMessage(sender, text, id) {
+            const wrap = document.createElement('div');
+            wrap.style.display = 'flex';
+            wrap.style.flexDirection = 'column';
             const msgDiv = document.createElement('div');
             msgDiv.className = `msg ${sender}-msg`;
+            if (id) msgDiv.id = id;
             msgDiv.innerText = text;
-            chatBox.appendChild(msgDiv);
+            wrap.appendChild(msgDiv);
+            chatBox.appendChild(wrap);
             chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function typeWriter(text) {
+            const wrap = document.createElement('div');
+            wrap.style.display = 'flex';
+            wrap.style.flexDirection = 'column';
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'msg ai-msg';
+            wrap.appendChild(msgDiv);
+            chatBox.appendChild(wrap);
+
+            let i = 0;
+            function run() {
+                if (i < text.length) {
+                    msgDiv.innerText += text.charAt(i); i++;
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                    setTimeout(run, 15);
+                } else {
+                    msgDiv.innerHTML += "<br><br>— <b>SHADOW JOKER</b>";
+                    const btn = document.createElement('button');
+                    btn.className = 'copy-btn'; btn.innerText = 'COPY';
+                    btn.onclick = () => { navigator.clipboard.writeText(text); btn.innerText = 'COPIED!'; };
+                    wrap.appendChild(btn);
+                }
+            }
+            run();
         }
 
         userInput.addEventListener("keypress", (e) => {
