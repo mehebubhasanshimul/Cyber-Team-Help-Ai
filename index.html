@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Team Help Ai | SHADOW JOKER</title>
+    <style>
+        body {
+            margin: 0; padding: 0;
+            background: #050505;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; overflow: hidden;
+        }
+
+        /* Running Background Animation */
+        body::before {
+            content: "";
+            position: absolute;
+            width: 200%; height: 200%;
+            background: linear-gradient(-45deg, #000, #001f3f, #08001a, #004080);
+            background-size: 400% 400%;
+            animation: moveBG 12s ease infinite;
+            z-index: -1;
+        }
+
+        @keyframes moveBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            width: 95%; max-width: 500px;
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid #00ffcc;
+            box-shadow: 0 0 25px #00ffcc;
+            border-radius: 15px;
+            display: flex; flex-direction: column;
+            height: 85vh; position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        header {
+            text-align: center; padding: 20px;
+            border-bottom: 1px solid rgba(0, 255, 204, 0.3);
+        }
+
+        .glow-text {
+            color: #00ffcc; font-size: 24px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
+            margin: 0; letter-spacing: 2px;
+        }
+
+        .flicker { animation: flicker 2s infinite; }
+        @keyframes flicker {
+            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+            20%, 22%, 24%, 55% { opacity: 0.2; }
+        }
+
+        .credit { font-size: 13px; color: #ff00ff; text-shadow: 0 0 8px #ff00ff; font-weight: bold; }
+
+        .chat-box {
+            flex: 1; padding: 15px;
+            overflow-y: auto; display: flex;
+            flex-direction: column; gap: 12px;
+        }
+
+        .msg {
+            max-width: 85%; padding: 12px;
+            border-radius: 10px; font-size: 14px;
+            line-height: 1.5; word-wrap: break-word;
+        }
+
+        .user-msg {
+            align-self: flex-end; background: #ff00ff;
+            color: #fff; box-shadow: 0 0 15px #ff00ff;
+        }
+
+        .ai-msg {
+            align-self: flex-start; background: rgba(17, 17, 17, 0.9);
+            border: 1px solid #00ffcc; color: #00ffcc;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+        }
+
+        .input-area {
+            display: flex; padding: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border-top: 1px solid rgba(0, 255, 204, 0.3);
+            border-bottom-left-radius: 15px; border-bottom-right-radius: 15px;
+        }
+
+        input {
+            flex: 1; background: transparent;
+            border: 1px solid #00ffcc; color: #fff;
+            padding: 10px 15px; outline: none; border-radius: 5px;
+        }
+
+        button {
+            background: #00ffcc; border: none;
+            padding: 10px 20px; margin-left: 10px;
+            cursor: pointer; font-weight: bold;
+            border-radius: 5px; box-shadow: 0 0 10px #00ffcc;
+            transition: 0.3s;
+        }
+
+        button:hover { background: #fff; box-shadow: 0 0 20px #fff; }
+
+        /* Custom Scrollbar */
+        .chat-box::-webkit-scrollbar { width: 5px; }
+        .chat-box::-webkit-scrollbar-thumb { background: #00ffcc; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1 class="glow-text flicker">Cyber Team Help Ai</h1>
+            <span class="credit">Create By SHADOW JOKER</span>
+        </header>
+
+        <div id="chatBox" class="chat-box">
+            <div class="msg ai-msg">স্বাগতম! আমি Cyber Team Help Ai। আপনাকে কীভাবে সাহায্য করতে পারি? <br><br>— <b>SHADOW JOKER</b></div>
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="আপনার প্রশ্নটি এখানে লিখুন..." autocomplete="off">
+            <button onclick="sendMessage()">SEND</button>
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById('chatBox');
+        const userInput = document.getElementById('userInput');
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            appendMessage('user', message);
+            userInput.value = '';
+
+            const loadingMsg = document.createElement('div');
+            loadingMsg.className = 'msg ai-msg';
+            loadingMsg.innerHTML = "<i>SHADOW JOKER AI উত্তর খুঁজছে...</i>";
+            chatBox.appendChild(loadingMsg);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: message })
+                });
+
+                const data = await response.json();
+                chatBox.removeChild(loadingMsg);
+
+                const aiText = data.reply + "\n\n— *Create By SHADOW JOKER*";
+                appendMessage('ai', aiText);
+
+            } catch (error) {
+                loadingMsg.innerText = "Error: সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না।";
+            }
+        }
+
+        function appendMessage(sender, text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `msg ${sender}-msg`;
+            msgDiv.innerText = text;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        userInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") sendMessage();
+        });
+    </script>
+</body>
+</html>
